@@ -12,7 +12,7 @@ RUN rm -rf /var/lib/apt/lists/*
 COPY . /opt/app
 WORKDIR /opt/app
 
-# Install the app librairies
+# Install the app librairies.
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Start the app.
