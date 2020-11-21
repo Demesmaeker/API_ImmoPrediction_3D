@@ -1,7 +1,7 @@
 FROM python:3.8-slim-buster
 
 # Install the security updates.
-RUN apt-get updates
+RUN apt-get update
 RUN apt-get -y upgrade
 
 # Remove all cached file. Get a smaller image.
