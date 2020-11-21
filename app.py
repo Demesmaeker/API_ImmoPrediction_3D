@@ -2,12 +2,16 @@ import os
 from random import randint
 from flask import Flask, request, jsonify
 from flask_restx import Api, Resource, abort
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 
 # Init app
 app = Flask(__name__)
 api = Api(app, version='1.0', title='ImmoEliza API', description='API that return a price prediction for a building in Belgium', default='V1', default_label='first test')
 basedir = os.path.abspath(os.path.dirname(__file__))
+
+# Fix the Flask-RESTx https error
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 
 @api.route('/status', methods=['GET'])
