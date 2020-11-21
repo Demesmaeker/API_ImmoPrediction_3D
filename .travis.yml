@@ -12,12 +12,12 @@ before_script:
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
 script:
-  - docker build -t demesmaeker/api_immoprediction_3d:latest .
+  - docker build -t mdemesmaeker/api_immoprediction_3d:latest .
 
 deploy:
   provider: script
   script:
-    docker push demesmaeker/api_immoprediction_3d:latest;
+    docker push mdemesmaeker/api_immoprediction_3d:latest;
   on:
     branch:
       main
