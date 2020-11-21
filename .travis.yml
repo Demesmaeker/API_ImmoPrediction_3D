@@ -12,7 +12,6 @@ before_script:
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
 script:
-  - python -m unittest tests/geocoder_test.py
   - docker build -t Demesmaeker/API_ImmoPrediction_3D:latest .
 
 deploy:
