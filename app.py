@@ -135,7 +135,7 @@ class predict(Resource):
         response = {'prediction' : pred,
                     'coordinates' : {'latitude' : latitude,
                                     'longitude' : longitude},
-                    'key' : google_key}
+                    }
 
         return jsonify(response)
 
