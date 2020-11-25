@@ -8,6 +8,7 @@ from flask_restx import Api, Resource, abort, fields
 import numpy as np
 import pandas as pd
 from sklearn.ensemble import GradientBoostingRegressor
+import geopy as gp
 
 from assets.communes import ranks
 
@@ -116,9 +117,25 @@ class predict(Resource):
                 1 if (state_of_the_building == 'unknown') else 0
                 ]
 
-        pred = model.predict([params])[0]
+        pred = round(model.predict([params])[0], 2)
 
-        response = {'prediction' : pred}
+        google_key = os.environ.get("GOOLEAPI", None)
+        
+        address = f"{road}, {number} {zip_code}"
+
+        locator = gp.geocoders.GoogleV3(api_key=google_key)
+        try :
+            location = locator.geocode(address, timeout=10)
+            longitude = location.longitude
+            latitude = location.latitude
+        except :
+            longitude = None
+            latitude = None
+        
+        response = {'prediction' : pred,
+                    'coordinates' : {'latitude' : latitude,
+                                    'longitude' : longitude},
+                    'key' : google_key}
 
         return jsonify(response)
 
