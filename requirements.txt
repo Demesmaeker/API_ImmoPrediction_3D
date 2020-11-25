@@ -3,3 +3,4 @@ flask-restx
 numpy
 pandas
 scikit-learn
+geopy
