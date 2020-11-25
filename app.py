@@ -119,7 +119,7 @@ class predict(Resource):
 
         pred = round(model.predict([params])[0], 2)
 
-        google_key = os.environ.get("GOOLEAPI", None)
+        google_key = os.environ.get("GOOGLEAPI", None)
         
         address = f"{road}, {number} {zip_code}"
 
