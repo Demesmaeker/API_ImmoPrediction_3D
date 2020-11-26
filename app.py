@@ -37,8 +37,8 @@ resource_fields = api.model('Predict', {
 
 resource_fields2 = api.model('3D', {
     'ZIP': fields.Integer,
-    'lat' : fields.Integer,
-    'long' : fields.Integer,
+    'lat' : fields.Float,
+    'long' : fields.Float,
     'length' : fields.Integer
     })
 
