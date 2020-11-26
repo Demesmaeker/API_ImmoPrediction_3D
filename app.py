@@ -3,7 +3,7 @@ from random import randint
 import pickle
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_restx import Api, Resource, abort, fields
 import numpy as np
 import pandas as pd
@@ -21,7 +21,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 # Fix the Flask-RESTx https error
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-resource_fields = api.model('Resource', {
+resource_fields = api.model('Predict', {
     'ZIP': fields.Integer,
     'type_of_property' : fields.String,
     'subtype_of_property' : fields.String,
@@ -33,7 +33,14 @@ resource_fields = api.model('Resource', {
     'state_of_the_building' : fields.String,
     'road' : fields.String,
     'number' : fields.Integer
-})
+    })
+
+resource_fields2 = api.model('3D', {
+    'ZIP': fields.Integer,
+    'lat' : fields.Integer,
+    'long' : fields.Integer,
+    'length' : fields.Integer
+    })
 
 
 @api.route('/status', methods=['GET'])
@@ -48,7 +55,7 @@ class status(Resource):
 
 
 @api.route('/predict', methods=['POST'])
-@api.doc(body=resource_fields, description='Enter these parameters to get a price prediction')
+@api.doc(body=resource_fields, description='Enter these parameters to get a price prediction.')
 class predict(Resource):
     def post(self):
         infos = request.get_json()
@@ -138,6 +145,22 @@ class predict(Resource):
                     }
 
         return jsonify(response)
+
+
+@api.route('/get_file', methods=['POST'])
+@api.doc(body=resource_fields2, description='Enter these parameters to get a 3D file of the place.')
+class get_file(Resource):
+    def post(self):
+        infos = request.get_json()
+
+        zip_code = infos['ZIP']
+        latitude = infos['lat']
+        longitude = infos['long']
+        length = infos['length']
+        
+        response = {}
+
+        return send_from_directory('./3D', '3D_houses.obj', as_attachment=True)
 
 
 # Run server
