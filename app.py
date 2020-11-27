@@ -7,8 +7,12 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_restx import Api, Resource, abort, fields
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from sklearn.ensemble import GradientBoostingRegressor
 import geopy as gp
+import geopandas as gpd
+from shapely.geometry import Point
+import open3d as o3d
 
 from assets.communes import ranks
 
@@ -36,10 +40,9 @@ resource_fields = api.model('Predict', {
     })
 
 resource_fields2 = api.model('3D', {
-    'ZIP': fields.Integer,
     'lat' : fields.Float,
     'long' : fields.Float,
-    'length' : fields.Integer
+    'size' : fields.Integer
     })
 
 
@@ -153,12 +156,56 @@ class get_file(Resource):
     def post(self):
         infos = request.get_json()
 
-        zip_code = infos['ZIP']
         latitude = infos['lat']
         longitude = infos['long']
-        length = infos['length']
+        size = infos['size']
+
+        p = gpd.GeoSeries([Point(latitude, longitude)])
+        p.crs = 'epsg:4326'
+        p = p.to_crs(epsg=31370)
+
+        y = p[0].y
+        x = p[0].x
         
-        response = {}
+
+        hainaut = pd.read_csv('./assets/hainaut.csv')
+
+        place = hainaut[(hainaut["x"] <= x + size) & 
+                    (hainaut["x"] >= x - size) & 
+                    (hainaut["y"] <= y + size) & 
+                    (hainaut["y"] >= y - size)]
+
+        meanx = place['x'].mean()
+        meany = place['y'].mean()
+        minz = place['z'].min()
+
+        final = pd.DataFrame()
+        final['x'] = place['x'] - meanx
+        final['y'] = place['y'] - meany
+        final['z'] = place['z'] - minz
+        
+        pcd = o3d.geometry.PointCloud()
+        pcd.points = o3d.utility.Vector3dVector(final.to_numpy())
+        pcd.estimate_normals(search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=0.1, max_nn=30))
+
+        with o3d.utility.VerbosityContextManager(o3d.utility.VerbosityLevel.Debug) as cm:
+            poisson_mesh, densities = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(
+                pcd, depth=8, linear_fit =True)
+
+        densities = np.asarray(densities)
+        density_colors = plt.get_cmap('viridis')(
+            (densities - densities.min()) / (densities.max() - densities.min()))
+        density_colors = density_colors[:, :3]
+        density_mesh = o3d.geometry.TriangleMesh()
+        density_mesh.vertices = poisson_mesh.vertices
+        density_mesh.triangles = poisson_mesh.triangles
+        density_mesh.triangle_normals = poisson_mesh.triangle_normals
+        density_mesh.vertex_colors = o3d.utility.Vector3dVector(density_colors)
+
+        vertices_to_remove = densities < np.quantile(densities, 0.01)
+        density_mesh.remove_vertices_by_mask(vertices_to_remove)
+
+        o3d.io.write_triangle_mesh("./3D/3D_houses.obj", density_mesh)
 
         return send_from_directory('./3D', '3D_houses.obj', as_attachment=True)
 
