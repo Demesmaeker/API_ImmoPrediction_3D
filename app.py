@@ -160,7 +160,7 @@ class get_file(Resource):
         longitude = infos['long']
         size = infos['size']
 
-        p = gpd.GeoSeries([Point(latitude, longitude)])
+        p = gpd.GeoSeries([Point(longitude, latitude)])
         p.crs = 'epsg:4326'
         p = p.to_crs(epsg=31370)
 
