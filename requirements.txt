@@ -2,8 +2,12 @@ flask
 flask-restx
 numpy
 pandas
-scikit-learn
+scikit-learn==0.23.2
 geopy
 geopandas
-open3d-python
+open3d==0.10.0.0
 matplotlib
+werkzeug
+numpy
+pandas
+shapely
